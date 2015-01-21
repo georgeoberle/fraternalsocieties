@@ -1,0 +1,8 @@
+---
+title: "fraternalsocnetworks"
+author: "George Oberle"
+date: "January 21, 2015"
+output: html_document
+---
+
+This is a network analysis of a the members of learned societies in the early American republic. 
