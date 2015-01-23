@@ -6,3 +6,69 @@ output: html_document
 ---
 
 This is a network analysis of a the members of learned societies in the early American republic. 
+
+##Load tools
+
+```{r}
+library (sp)
+library (rgdal)
+library (rgeos)
+library (maptools)
+library (ggmap)
+library (ggplot2)
+library (mullenMisc)
+library (magrittr)
+library (stringr)
+library (dplyr)
+library (RColorBrewer)
+library (igraph)
+```
+
+##Membership Rolls: Collecting Data
+
+It seemed appropriate to start evaluating membership rolls using the American Philosophical Society (APS) and the American Academy of Arts and Sciences (AAAS).
+
+###American Philosophical Society
+
+The APS, founded in Philadelphia, is the oldest learned society established in 1743 by Benjamin Franklin however the society experienced several setbacks. Beginning in 1768 there is a reliable list of elected members available by year at the APS website. 
+
+The data available consists of five fields:
+
+
+* Name:    Thomas Bacon
+* Year Elected:  1768
+* Residency:  	Resident
+* Living :  	Deceased
+* Death Date:  	5/24/1768
+       
+###American Academy of Arts and Sciences
+The American Academy of Arts and Sciences, founded in Boston, in 1780 by John Adams and other leaders in Massachusetts to promote the diffusion of knowledge. The online book of members is a .pdf list of names, arranged by year of election and then alphabetically by last name. Following the name there is a series of dates that indicates the birth year and the death year of the corresponding individual.  There is a separate listing the names of members that are organized by the appropriate subject category for which the member was elected. These are not cross-listed with the main entry and there is no way to differentiate duplicate names in these listings since there is no birth/death dates. As a result, this data was not gathered at this time however, it may be useful to add should a relevant project surface. In the end, the three common variables seemed to be name, organization and their common status as member. This became the foundation of developing a network analysis chart.
+
+####Creating the Spreadsheets
+The creation of these lists in a spreadsheet takes significant time inputting the data. This process required a quality control check in place to assure that typos and other mistakes were minimized. Since they are both active institutions a cut off decision had to be made. Due to the nature my original project the cut off date was 1828 since this was Andrew Jackson’s election and clearly outside of the scope of work that Kerber and Green introduced. Evaluating these membership lists was a difficult process without the aid of software due to the large set of names. For example, the *American Philosophical Society* from 1768-1828 elected 717 members. Likewise, the *American Academy of Arts and Sciences*, founded in 1780, boasted a membership through 1828 that numbered 432 members. It would be impossible for the scholar to memorize every name on the list and it would be daunting to try to manually calculate graphs that demonstrate statistical patterns or to draw a network graph that examined the overlap of these groups. Ultimately, this makes this sort of data a prime candidate for scholars to use R to help visualize the data gathered from membership rolls.
+
+I combined the two lists in a csv file called APSAAAScombined.
+
+```{r}
+#This is helpful showing the annual membership of the APS and the AAAS. It shows patterns of growth of the members.
+socdata = read.csv ("~/fraternalsocieties/data/APSAAAScombined.csv")
+
+year <- ggplot(socdata, aes(x=Year.Elected, fill= Organization ))
+year + geom_histogram(position = "dodge", binwidth = 1) +
+ggtitle("Annual Elected Members of APS and AAAS") + ylab("Total Members Elected") + xlab("Year Elected")
+```
+
+The graph shows that approximately 40% of the elected membership between 1768 and 1828 were categorized as international members. In addition to other possible meanings a scholar may want to consider that the scientific community in this period was a cosmopolitan group that actively engaged each other in order to promote the diffusion of knowledge.
+
+Despite the fact that the AAAS elected foreign members it is interesting to note that they did not distinguish between this types of residency status. This is curious since the AAAS was founded near the end of the Revolutionary War while the APS practice dates from its founding prior to the outbreak of hostilities.
+
+Perhaps even more interesting is viewing the APS residency status by annual elections. This chart shows significant increases in the number of international members following the creation of the AAAS. It is unclear if this is directly connected to the establishment and growth of the AAAS however, it offers some new questions to look into and if it is significant then the scholar can invest the time to identify international members elected into the AAAS in order to compare these institutions. This could be useful to explore several questions including were foreign members added to help bolster the authority of the institution.
+
+
+```{r}
+socdata %>%
+  group_by(Year.Elected, Organization) %>%
+  summarize(n = n())  %>% 
+  ggplot(aes(x=Year.Elected, y= n, color = Organization )) +
+  geom_line() +
+ggtitle("Annual Elected Members of APS and AAAS") + ylab("Total Members Elected") + xlab("Year Elected")
